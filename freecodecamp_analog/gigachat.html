@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyCamp: Курс Python в одном файле</title>
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-panel: #252526;
+            --text-light: #d4d4d4;
+            --text-muted: #858585;
+            --accent: #007acc;
+            --success: #4ec9b0;
+            --error: #f44747;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar, .editor, .console {
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-panel);
+            overflow-y: auto;
+        }
+        .logo {
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            background-color: #2d2d30;
+            color: var(--accent);
+            border-bottom: 1px solid #333;
+        }
+        .module {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .module.active, .module:hover {
+            background-color: #37373d;
+            border-left-color: var(--accent);
+        }
+        .lesson {
+            padding: 5px 35px;
+            font-size: 0.9em;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .lesson.active {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .panels {
+            flex-grow: 1;
+            display: flex;
+            height: 0;
+        }
+        .editor, .console {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .theory {
+            flex-basis: 40%;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #252526;
+            border-right: 1px solid #333;
+        }
+        .theory h1, .theory h2, .theory h3 {
+            color: var(--accent);
+            margin-top: 20px;
+        }
+        .theory code {
+            background-color: #37373d;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: var(--success);
+            font-family: 'Consolas', monospace;
+        }
+        .theory pre {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Consolas', monospace;
+            color: #9cdcfe;
+        }
+        .theory ul {
+            padding-left: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            background-color: #1e1e1e;
+            color: var(--text-light);
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            padding: 15px;
+            resize: none;
+        }
+        .console-output {
+            height: 100%;
+            background-color: #1e1e1e;
+            color: #9cdcfe;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            padding: 15px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .controls {
+            padding: 10px 20px;
+            background-color: #2d2d30;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .status {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+        .status.running { color: #ffd700; }
+        .status.success { color: var(--success); }
+        .status.error { color: var(--error); }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">PyCamp</div>
+    <div id="curriculum"></div>
+</div>
+
+<div class="main-content">
+    <div class="panels">
+        <div class="theory" id="theory-panel"></div>
+        <div class="editor">
+            <textarea id="code-editor">print("Привет, PyCamp!")
+# Напиши свой код здесь</textarea>
+        </div>
+        <div class="console">
+            <div class="console-output" id="console-output">Консоль вывода...
+<br>Нажмите "Запустить", чтобы выполнить код.</div>
+        </div>
+    </div>
+    <div class="controls">
+        <div>
+            <button id="run-btn">▶ Запустить</button>
+            <button id="reset-btn" style="margin-left: 10px;">🔄 Сбросить</button>
+        </div>
+        <div class="status" id="status-text">Готово</div>
+    </div>
+</div>
+
+<script>
+// === ДАННЫЕ КУРСА ===
+const courseData = [
+    {
+        title: "Модуль 1: Основы",
+        lessons: [
+            {
+                title: "Привет, мир!",
+                theory: "# Первая программа\n\nPython — это мощный и простой язык. Давайте выведем текст в консоль.\n\n**Синтаксис:**\n```python\nprint(\"Текст\")\n```\n\n**Задание:** Измените текст внутри кавычек на свое имя и запустите код.",
+                solution: 'print("Ваше имя")'
+            },
+            {
+                title: "Переменные и типы данных",
+                theory: "# Хранение данных\n\n**Переменные** — это именованные контейнеры для данных.\n\n**Типы данных:**\n* `int` — целое число (например, `10`)\n* `float` — число с точкой (`3.14`)\n* `str` — строка (`\"текст\"`)\n* `bool` — булево значение (`True` или `False`)\n\n**Задание:** Создайте переменную `age`, присвойте ей свой возраст и выведите её на экран.",
+                solution: 'age = 25\nprint(age)'
+            }
+        ]
+    },
+    {
+        title: "Модуль 2: Управление потоком",
+        lessons: [
+            {
+                title: "Условные операторы",
+                theory: "# Принятие решений\n\nКонструкция `if-elif-else` позволяет выполнять код при выполнении условий.\n\n```python\nx = 10\nif x > 0:\n    print(\"Положительное\")\nelif x < 0:\n    print(\"Отрицательное\")\nelse:\n    print(\"Ноль\")\n```\n\n**Задание:** Напишите программу, которая проверяет, является ли число `number` четным (используйте оператор `%`).",
+                solution: 'number = 42\nif number % 2 == 0:\n    print("Четное")\nelse:\n    print("Нечетное")'
+            },
+            {
+                title: "Циклы",
+                theory: "# Повторение действий\n\n* `for` — перебирает элементы (например, в `range(5)`).\n* `while` — выполняется, пока условие истинно.\n\n**Задание:** Выведите на экран таблицу умножения на 5 (от 1 до 10) с помощью цикла `for`.",
+                solution: 'for i in range(1, 11):\n    print(f"5 * {i} = {5 * i}")'
+            }
+        ]
+    },
+    {
+        title: "Модуль 3: Структуры данных",
+        lessons: [
+            {
+                title: "Списки",
+                theory: "# Упорядоченные коллекции\n\nСписки (`list`) хранят упорядоченные элементы. Они изменяемы.\n\n```python\nfruits = [\"яблоко\", \"банан\", \"вишня\"]\nprint(fruits[0]) # яблоко\nfruits.append(\"груша\")\nprint(len(fruits)) # 4\n```\n\n**Задание:** Создайте список чисел и найдите их сумму с помощью цикла.",
+                solution: 'numbers = [10, 20, 30, 40]\ntotal = 0\nfor num in numbers:\n    total += num\nprint(total)'
+            },
+            {
+                title: "Словари",
+                theory: "# Пары ключ-значение\n\nСловари (`dict`) хранят данные в формате `ключ: значение`.\n\n```python\nuser = {\"name\": \"Иван\", \"age\": 30}\nprint(user[\"name\"])\nuser[\"city\"] = \"Москва\"\n```\n\n**Задание:** Создайте словарь с тремя странами и их столицами. Выведите столицу одной из них.",
+                solution: 'capitals = {\"Россия\": \"Москва\", \"Франция\": \"Париж\", \"Япония\": \"Токио\"}\nprint(capitals[\"Франция\"])'
+            }
+        ]
+    },
+    {
+        title: "Модуль 4: Функции",
+        lessons: [
+            {
+                title: "Создание функций",
+                theory: "# Переиспользование кода\n\nФункции объявляются через `def`.\n\n```python\ndef greet(name):\n    return f\"Привет, {name}!\"\n\nprint(greet(\"Мир\"))\n```\n\n**Задание:** Напишите функцию `cube(x)`, которая возвращает число в третьей степени.",
+                solution: 'def cube(x):\n    return x ** 3\n\nprint(cube(3))'
+            }
+        ]
+    },
+    {
+        title: "Модуль 5: Работа с файлами",
+        lessons: [
+            {
+                title: "Чтение и запись",
+                theory: "# Сохранение данных\n\nДля работы используется конструкция `with open(...)`.\n\n**Запись:**\n```python\nwith open(\"data.txt\", \"w\") as f:\n    f.write(\"Hello\")\n```\n\n**Чтение:**\n```python\nwith open(\"data.txt\", \"r\") as f:\n    content = f.read()\n    print(content)\n```\n\n**Задание:** Запишите строку \"Успех\" в файл `result.txt`, а затем прочитайте её и выведите в консоль.',
+                solution: 'with open(\"result.txt\", \"w\") as f:\n    f.write(\"Успех\")\n\nwith open(\"result.txt\", \"r\") as f:\n    print(f.read())'
+            }
+        ]
+    }
+];
+
+// === ЛОГИКА ПРИЛОЖЕНИЯ ===
+const curriculumEl = document.getElementById('curriculum');
+const theoryEl = document.getElementById('theory-panel');
+const codeEl = document.getElementById('code-editor');
+const consoleEl = document.getElementById('console-output');
+const runBtn = document.getElementById('run-btn');
+const resetBtn = document.getElementById('reset-btn');
+const statusEl = document.getElementById('status-text');
+
+let currentModule = 0;
+let currentLesson = 0;
+
+function renderCurriculum() {
+    curriculumEl.innerHTML = '';
+    courseData.forEach((module, mIndex) => {
+        const moduleDiv = document.createElement('div');
+        moduleDiv.classList.add('module');
+        if (mIndex === currentModule) moduleDiv.classList.add('active');
+        moduleDiv.textContent = module.title;
+        moduleDiv.onclick = () => {
+            currentModule = mIndex;
+            currentLesson = 0;
+            renderCurriculum();
+            renderLesson();
+        };
+        
+        const lessonsDiv = document.createElement('div');
+        if (mIndex === currentModule) lessonsDiv.style.display = 'block';
+        else lessonsDiv.style.display = 'none';
+
+        module.lessons.forEach((lesson, lIndex) => {
+            const lessonDiv = document.createElement('div');
+            lessonDiv.classList.add('lesson');
+            if (mIndex === currentModule && lIndex === currentLesson) lessonDiv.classList.add('active');
+            lessonDiv.textContent = lesson.title;
+            lessonDiv.onclick = () => {
+                currentLesson = lIndex;
+                renderCurriculum();
+                renderLesson();
+            };
+            lessonsDiv.appendChild(lessonDiv);
+        });
+
+        curriculumEl.appendChild(moduleDiv);
+        curriculumEl.appendChild(lessonsDiv);
+    });
+}
+
+function parseMarkdown(text) {
+    // Очень простой парсер Markdown для учебных целей
+    let html = text;
+    // Жирный шрифт
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Заголовки
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    // Списки
+    html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+    html = html.replace(/<li>([\s\S]*?)<\/li>/gim, '<ul>$&</ul>');
+    // Код (однострочный)
+    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+    // Преобразование переносов строк
+    html = html.replace(/\n/g, '<br>');
+    return html;
+}
+
+function renderLesson() {
+    const lesson = courseData[currentModule].lessons[currentLesson];
+    theoryEl.innerHTML = parseMarkdown(lesson.theory);
+    codeEl.value = lesson.solution;
+    consoleEl.innerHTML = 'Консоль вывода...';
+    statusEl.textContent = 'Готово';
+    statusEl.className = 'status';
+}
+
+// API для выполнения Python (Piston). Бесплатный, но имеет ограничения по частоте запросов.
+// Для продакшена рекомендуется поднять свой экземпляр или использовать платные аналоги.
+const EXECUTE_API = 'https://emkc.org/api/v2/piston/execute';
+
+async function runCode() {
+    const code = codeEl.value;
+    if (!code.trim()) return;
+
+    statusEl.textContent = 'Выполняется...';
+    statusEl.className = 'status running';
+    runBtn.disabled = true;
+    consoleEl.innerHTML = 'Выполнение...';
+
+    const payload = {
+        language: 'python',
+        version: '3.x',
+        files: [{ name: 'main.py', content: code }]
+    };
+
+    try {
+        const response = await fetch(EXECUTE_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (data.run && data.run.output) {
+            consoleEl.innerHTML = data.run.output;
+            statusEl.textContent = 'Успешно';
+            statusEl.className = 'status success';
+        } else if (data.run && data.run.errors) {
+            consoleEl.innerHTML = data.run.errors;
+            statusEl.textContent = 'Ошибка выполнения';
+            statusEl.className = 'status error';
+        } else {
+            consoleEl.innerHTML = 'Неизвестная ошибка API';
+            statusEl.textContent = 'Ошибка';
+            statusEl.className = 'status error';
+        }
+    } catch (error) {
+        consoleEl.innerHTML = 'Ошибка сети. Проверьте подключение.';
+        statusEl.textContent = 'Ошибка сети';
+        statusEl.className = 'status error';
+    } finally {
+        runBtn.disabled = false;
+    }
+}
+
+function resetCode() {
+    const lesson = courseData[currentModule].lessons[currentLesson];
+    codeEl.value = lesson.solution;
+    consoleEl.innerHTML = 'Консоль вывода...';
+    statusEl.textContent = 'Сброшено';
+    statusEl.className = 'status';
+}
+
+// === ИНИЦИАЛИЗАЦИЯ ===
+renderCurriculum();
+renderLesson();
+
+runBtn.addEventListener('click', runCode);
+resetBtn.addEventListener('click', resetCode);
+</script>
+
+</body>
+</html>
