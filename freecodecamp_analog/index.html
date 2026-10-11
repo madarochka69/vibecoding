@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Навигация по проектам</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-color: #c9d1d9;
+            --accent-color: #58a6ff;
+            --hover-bg: #21262d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            color: #8b949e;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--hover-bg);
+            border-color: var(--accent-color);
+        }
+
+        .icon {
+            margin-right: 12px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-name {
+            flex-grow: 1;
+        }
+
+        .arrow {
+            color: #8b949e;
+            transition: transform 0.2s;
+        }
+
+        .nav-item:hover .arrow {
+            color: var(--accent-color);
+            transform: translateX(4px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>freecodecamp_analog</h1>
+        <p class="subtitle">Выберите файл для просмотра работы нейросетей</p>
+
+        <nav class="nav-list">
+            <a href="Cursor.html" class="nav-item">
+                <span class="icon">📄</span>
+                <span class="file-name">Cursor.html</span>
+                <span class="arrow">→</span>
+            </a>
+            
+            <a href="deepseek.html" class="nav-item">
+                <span class="icon">📄</span>
+                <span class="file-name">deepseek.html</span>
+                <span class="arrow">→</span>
+            </a>
+            
+            <a href="gigachat.html" class="nav-item">
+                <span class="icon">📄</span>
+                <span class="file-name">gigachat.html</span>
+                <span class="arrow">→</span>
+            </a>
+            
+            <a href="qwen_web_dev.html" class="nav-item">
+                <span class="icon">📄</span>
+                <span class="file-name">qwen_web_dev.html</span>
+                <span class="arrow">→</span>
+            </a>
+            
+            <a href="zai.html" class="nav-item">
+                <span class="icon">📄</span>
+                <span class="file-name">zai.html</span>
+                <span class="arrow">→</span>
+            </a>
+        </nav>
+    </div>
+
+</body>
+</html>
